@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewCampaign(t *testing.T) {
+func Test_NewCampaign(t *testing.T) {
 
 	assert := assert.New(t)
 	name := "Campaign X"
