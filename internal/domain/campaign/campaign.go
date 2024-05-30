@@ -1,6 +1,7 @@
 package campaign
 
 import (
+	internalerrors "emailgo/internal/internal-errors"
 	"time"
 
 	"github.com/rs/xid"
@@ -25,11 +26,17 @@ func NewCampaign(name string, content string, emails []string) (*Campaign, error
 		contacts[index].Email = email
 	}
 
-	return &Campaign{
+	campaing := &Campaign{
 		ID:        xid.New().String(),
 		Name:      name,
 		CreatedOn: time.Now(),
 		Content:   content,
 		Contacts:  contacts,
-	}, nil
+	}
+	err := internalerrors.ValidateStruct(campaing)
+	if err == nil {
+		return campaing, nil
+	} else {
+		return nil, err
+	}
 }
