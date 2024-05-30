@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	contacts := []campaign.Contact{{Email: "gustavo@teste.com.br"}, {Email: ""}}
+	contacts := []campaign.Contact{{Email: "test@teste.com.br"}, {Email: ""}}
 	campaign := campaign.Campaign{Contacts: contacts}
 	validate := validator.New()
 	err := validate.Struct(campaign)
