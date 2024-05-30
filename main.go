@@ -24,7 +24,7 @@ func main() {
 			case "max":
 				println(v.StructField() + " is required with max " + v.Param())
 			case "email":
-				println(v.StructField() + " is invalid " + v.Param())
+				println(v.StructField() + " is invalid")
 			}
 		}
 	}
