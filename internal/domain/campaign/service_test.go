@@ -2,6 +2,7 @@ package campaign
 
 import (
 	"emailgo/internal/contract"
+	internalerrors "emailgo/internal/internal-errors"
 	"errors"
 	"testing"
 
@@ -66,10 +67,10 @@ func Test_Create_ValidateRepositorySave(t *testing.T) {
 	assert := assert.New(t)
 	repositoryMock := new(repositoryMock)
 
-	repositoryMock.On("Save", mock.Anything).Return(errors.New("error to save database"))
+	repositoryMock.On("Save", mock.Anything).Return(errors.New("error to save on database"))
 	service.Repository = repositoryMock
 
 	_, err := service.Create(newCampaign)
 
-	assert.Equal("error to save database", err.Error())
+	assert.True(errors.Is(internalerrors.ErrInternal, err))
 }
