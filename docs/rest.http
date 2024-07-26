@@ -1,4 +1,9 @@
-POST http://localhost:3000/campaigns
+@url = http://localhost:3000
+
+@identity_provider = http://localhost:8080
+
+POST {{url}}/campaigns
+Authorization: Bearer {{access_token}}
 
 {
     "name": "change",
@@ -7,7 +12,23 @@ POST http://localhost:3000/campaigns
 }
 
 ###
-GET http://localhost:3000/campaigns/cqf66l324q4jf50v04eg
+GET {{url}}/campaigns/
+Authorization: Bearer {{access_token}}
 
 ###
-DELETE http://localhost:3000/campaigns/delete/cqf6ncb24q4jp825vc90
+PATCH {{url}}/campaigns/cancel
+Authorization: Bearer {{access_token}}
+
+###
+DELETE {{url}}/campaigns/delete/
+Authorization: Bearer {{access_token}}
+
+###
+# @name token
+POST {{identity_provider}}/realms/provider/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+client_id=emailn&username=gustavo@gmail.com&password=vaporesso230895&grant_type=password
+
+###
+@access_token = {{token.response.body.access_token}}

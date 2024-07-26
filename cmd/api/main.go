@@ -4,20 +4,27 @@ import (
 	"emailgo/internal/domain/campaign"
 	"emailgo/internal/endpoints"
 	"emailgo/internal/infrastructure/database"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	r.Use(endpoints.Auth)
 
 	db := database.NewDatabase()
 
@@ -29,9 +36,12 @@ func main() {
 		CampaignService: &campaignService,
 	}
 
-	r.Post("/campaigns", endpoints.HandlerError(handler.CampaignPost))
-	r.Get("/campaigns/{id}", endpoints.HandlerError(handler.CampaignGetById))
-	r.Delete("/campaigns/delete/{id}", endpoints.HandlerError(handler.CampaignDelete))
+	r.Route("/campaigns", func(r chi.Router) {
+		r.Use(endpoints.Auth)
+		r.Post("/", endpoints.HandlerError(handler.CampaignPost))
+		r.Get("/{id}", endpoints.HandlerError(handler.CampaignGetById))
+		r.Delete("/delete/{id}", endpoints.HandlerError(handler.CampaignDelete))
+	})
 
 	http.ListenAndServe(":3000", r)
 }
