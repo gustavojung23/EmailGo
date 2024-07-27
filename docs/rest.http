@@ -1,26 +1,30 @@
 @url = http://localhost:3000
-
 @identity_provider = http://localhost:8080
 
+###
+# @name campaign_create
 POST {{url}}/campaigns
 Authorization: Bearer {{access_token}}
 
 {
-    "name": "change",
-    "content": "change password",
-    "emails": ["testego@teste.com.br","testego2@teste.com.br","testego3@teste.com.br"]
+    "name": "Hi Gustavo!",
+    "content": "Hello!",
+    "emails": ["testego1@teste.com","testego2@teste.com","testego3@teste.com"]
 }
 
 ###
-GET {{url}}/campaigns/
+@campaign_id = {{campaign_create.response.body.id}}
+
+###
+GET {{url}}/campaigns/{{campaign_id}}
 Authorization: Bearer {{access_token}}
 
 ###
-PATCH {{url}}/campaigns/cancel
+PATCH {{url}}/campaigns/start/{{campaign_id}}
 Authorization: Bearer {{access_token}}
 
 ###
-DELETE {{url}}/campaigns/delete/
+DELETE {{url}}/campaigns/delete/{{campaign_id}}
 Authorization: Bearer {{access_token}}
 
 ###
