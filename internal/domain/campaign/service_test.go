@@ -20,33 +20,37 @@ var (
 		Emails:    []string{"test1@test.com"},
 		CreatedBy: "teste@test.com.br",
 	}
-
-	service = campaign.ServiceImp{}
+	campaignPendenting, campaignStarted *campaign.Campaign
+	repositoryMock                      *internalmock.CampaignRepositoryMock
+	service                             = campaign.ServiceImp{}
 )
 
-func Test_Create_Campaign(t *testing.T) {
-	assert := assert.New(t)
-	repositoryMock := new(internalmock.CampaignRepositoryMock)
-	repositoryMock.On("Create", mock.Anything).Return(nil)
+func setupServiceTest() {
+	repositoryMock = new(internalmock.CampaignRepositoryMock)
 	service.Repository = repositoryMock
+	campaignPendenting, _ = campaign.NewCampaign(newCampaign.Name, newCampaign.Content, newCampaign.Emails, newCampaign.CreatedBy)
+	campaignStarted = &campaign.Campaign{ID: "1", Status: campaign.Started}
+}
+
+func Test_Create_Campaign(t *testing.T) {
+	setupServiceTest()
+	repositoryMock.On("Create", mock.Anything).Return(nil)
 
 	id, err := service.Create(newCampaign)
 
-	assert.NotNil(id)
-	assert.Nil(err)
+	assert.NotNil(t, id)
+	assert.Nil(t, err)
 }
 
 func Test_Create_ValidateDomainError(t *testing.T) {
-	assert := assert.New(t)
-
+	setupServiceTest()
 	_, err := service.Create(contract.NewCampaign{})
 
-	assert.False(errors.Is(internalerrors.ErrInternal, err))
+	assert.False(t, errors.Is(internalerrors.ErrInternal, err))
 }
 
 func Test_Create_SaveCampaign(t *testing.T) {
-	repositoryMock := new(internalmock.CampaignRepositoryMock)
-
+	setupServiceTest()
 	repositoryMock.On("Create", mock.MatchedBy(func(campaign *campaign.Campaign) bool {
 		if campaign.Name != newCampaign.Name || campaign.Content != newCampaign.Content || len(campaign.Contacts) != len(newCampaign.Emails) {
 			return false
@@ -54,110 +58,149 @@ func Test_Create_SaveCampaign(t *testing.T) {
 		return true
 	})).Return(nil)
 
-	service.Repository = repositoryMock
 	service.Create(newCampaign)
 
 	repositoryMock.AssertExpectations(t)
 }
 
 func Test_Create_ValidateRepositorySave(t *testing.T) {
-	assert := assert.New(t)
-	repositoryMock := new(internalmock.CampaignRepositoryMock)
-
+	setupServiceTest()
 	repositoryMock.On("Create", mock.Anything).Return(errors.New("error to save on database"))
-	service.Repository = repositoryMock
 
 	_, err := service.Create(newCampaign)
 
-	assert.True(errors.Is(internalerrors.ErrInternal, err))
+	assert.True(t, errors.Is(internalerrors.ErrInternal, err))
 }
 
 func Test_GetById_ReturnCampaign(t *testing.T) {
-	assert := assert.New(t)
-	campaign, _ := campaign.NewCampaign(newCampaign.Name, newCampaign.Content, newCampaign.Emails, newCampaign.CreatedBy)
-
-	repositoryMock := new(internalmock.CampaignRepositoryMock)
+	setupServiceTest()
 	repositoryMock.On("GetBy", mock.MatchedBy(func(id string) bool {
-		return id == campaign.ID
-	})).Return(campaign, nil)
-	service.Repository = repositoryMock
+		return id == campaignPendenting.ID
+	})).Return(campaignPendenting, nil)
 
-	campaignReturned, _ := service.GetBy(campaign.ID)
+	campaignReturned, _ := service.GetBy(campaignPendenting.ID)
 
-	assert.Equal(campaign.ID, campaignReturned.ID)
-	assert.Equal(campaign.Name, campaignReturned.Name)
-	assert.Equal(campaign.Content, campaignReturned.Content)
-	assert.Equal(campaign.Status, campaignReturned.Status)
-	assert.Equal(campaign.CreatedBy, campaignReturned.CreatedBy)
+	assert.Equal(t, campaignPendenting.ID, campaignReturned.ID)
+	assert.Equal(t, campaignPendenting.Name, campaignReturned.Name)
+	assert.Equal(t, campaignPendenting.Content, campaignReturned.Content)
+	assert.Equal(t, campaignPendenting.Status, campaignReturned.Status)
+	assert.Equal(t, campaignPendenting.CreatedBy, campaignReturned.CreatedBy)
 }
 
 func Test_GetById_ReturnErrorWhenSomethingWrongExist(t *testing.T) {
-	assert := assert.New(t)
-	campaign, _ := campaign.NewCampaign(newCampaign.Name, newCampaign.Content, newCampaign.Emails, newCampaign.CreatedBy)
-
-	repositoryMock := new(internalmock.CampaignRepositoryMock)
+	setupServiceTest()
 	repositoryMock.On("GetBy", mock.Anything).Return(nil, errors.New("Something wrong"))
-	service.Repository = repositoryMock
 
-	_, err := service.GetBy(campaign.ID)
+	_, err := service.GetBy("invalid campaign")
 
-	assert.Equal(internalerrors.ErrInternal.Error(), err.Error())
+	assert.Equal(t, internalerrors.ErrInternal.Error(), err.Error())
 }
 
 func Test_Delete_ReturnRecordNotFound_when_campaign_does_not_exist(t *testing.T) {
-	assert := assert.New(t)
-	campaignIdInvalid := "invalid"
-
-	repositoryMock := new(internalmock.CampaignRepositoryMock)
+	setupServiceTest()
 	repositoryMock.On("GetBy", mock.Anything).Return(nil, gorm.ErrRecordNotFound)
-	service.Repository = repositoryMock
 
-	err := service.Delete(campaignIdInvalid)
+	err := service.Delete("invalid campaign")
 
-	assert.Equal(err.Error(), gorm.ErrRecordNotFound.Error())
+	assert.Equal(t, err.Error(), gorm.ErrRecordNotFound.Error())
 }
 
 func Test_Delete_ReturnStatusInvalid_when_campaign_has_status_not_equals_pending(t *testing.T) {
-	assert := assert.New(t)
-	campaign := &campaign.Campaign{ID: "1", Status: campaign.Started}
+	setupServiceTest()
+	repositoryMock.On("GetBy", mock.Anything).Return(campaignStarted, nil)
 
-	repositoryMock := new(internalmock.CampaignRepositoryMock)
-	repositoryMock.On("GetBy", mock.Anything).Return(campaign, nil)
-	service.Repository = repositoryMock
+	err := service.Delete(campaignStarted.ID)
 
-	err := service.Delete(campaign.ID)
-
-	assert.Equal("Campaign status invalid", err.Error())
+	assert.Equal(t, "Campaign status invalid", err.Error())
 }
 
 func Test_Delete_ReturnInternalError_when_delete_has_problem(t *testing.T) {
-	assert := assert.New(t)
-	campaignFound, _ := campaign.NewCampaign("Test 1", "Body !!", []string{"test@test.com.br"}, newCampaign.CreatedBy)
+	setupServiceTest()
+	repositoryMock.On("GetBy", mock.Anything).Return(campaignPendenting, nil)
+	repositoryMock.On("Delete", mock.Anything).Return(errors.New("error to delete campaign"))
 
-	repositoryMock := new(internalmock.CampaignRepositoryMock)
-	repositoryMock.On("GetBy", mock.Anything).Return(campaignFound, nil)
-	repositoryMock.On("Delete", mock.MatchedBy(func(campaign *campaign.Campaign) bool {
-		return campaignFound == campaign
-	})).Return(errors.New("error to delete campaign"))
-	service.Repository = repositoryMock
+	err := service.Delete(campaignPendenting.ID)
 
-	err := service.Delete(campaignFound.ID)
-
-	assert.Equal(internalerrors.ErrInternal.Error(), err.Error())
+	assert.Equal(t, internalerrors.ErrInternal.Error(), err.Error())
 }
 
 func Test_Delete_ReturnNil_when_delete_has_success(t *testing.T) {
-	assert := assert.New(t)
-	campaignFound, _ := campaign.NewCampaign("Test 1", "Body !!", []string{"test@test.com.br"}, newCampaign.CreatedBy)
-
-	repositoryMock := new(internalmock.CampaignRepositoryMock)
-	repositoryMock.On("GetBy", mock.Anything).Return(campaignFound, nil)
+	setupServiceTest()
+	repositoryMock.On("GetBy", mock.Anything).Return(campaignPendenting, nil)
 	repositoryMock.On("Delete", mock.MatchedBy(func(campaign *campaign.Campaign) bool {
-		return campaignFound == campaign
+		return campaignPendenting == campaign
+	})).Return(nil)
+
+	err := service.Delete(campaignPendenting.ID)
+
+	assert.Nil(t, err)
+}
+
+func Test_Start_ReturnRecordNotFound_when_campaign_does_not_exist(t *testing.T) {
+	setupServiceTest()
+	repositoryMock.On("GetBy", mock.Anything).Return(nil, gorm.ErrRecordNotFound)
+
+	err := service.Start("campaign invalid")
+
+	assert.Equal(t, err.Error(), gorm.ErrRecordNotFound.Error())
+}
+
+func Test_Start_ReturnStatusInvalid_when_campaign_has_status_not_equals_pending(t *testing.T) {
+	setupServiceTest()
+	repositoryMock.On("GetBy", mock.Anything).Return(campaignStarted, nil)
+
+	err := service.Start(campaignStarted.ID)
+
+	assert.Equal(t, "Campaign status invalid", err.Error())
+}
+
+func Test_Start_should_send_email(t *testing.T) {
+	setupServiceTest()
+	repositoryMock.On("GetBy", mock.Anything).Return(campaignPendenting, nil)
+	repositoryMock.On("Update", mock.Anything).Return(nil)
+
+	emailWasSet := false
+	sendMail := func(campaign *campaign.Campaign) error {
+		if campaign.ID == campaignPendenting.ID {
+			emailWasSet = true
+		}
+		return nil
+	}
+
+	service.SendMail = sendMail
+
+	service.Start(campaignPendenting.ID)
+	assert.True(t, emailWasSet)
+}
+
+func Test_Start_ReturnError_when_func_SendMail_fail(t *testing.T) {
+	setupServiceTest()
+	repositoryMock.On("GetBy", mock.Anything).Return(campaignPendenting, nil)
+
+	sendMail := func(campaign *campaign.Campaign) error {
+		return errors.New("error to send mail")
+	}
+	service.SendMail = sendMail
+
+	err := service.Start(campaignPendenting.ID)
+
+	assert.Equal(t, internalerrors.ErrInternal.Error(), err.Error())
+}
+
+func Test_Start_Return_when_update_to_done(t *testing.T) {
+	setupServiceTest()
+	repositoryMock.On("GetBy", mock.Anything).Return(campaignPendenting, nil)
+	repositoryMock.On("Update", mock.MatchedBy(func(campaignToUpdate *campaign.Campaign) bool {
+		return campaignPendenting.ID == campaignToUpdate.ID && campaignToUpdate.Status == campaign.Done
 	})).Return(nil)
 	service.Repository = repositoryMock
 
-	err := service.Delete(campaignFound.ID)
+	sendMail := func(campaign *campaign.Campaign) error {
+		return nil
+	}
+	service.SendMail = sendMail
 
-	assert.Nil(err)
+	service.Start(campaignPendenting.ID)
+
+	assert.Equal(t, campaign.Done, campaignPendenting.Status)
 }
