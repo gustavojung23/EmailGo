@@ -48,7 +48,7 @@ func (c *Campaign) Fail() {
 	c.Status = Fail
 }
 
-func (c *Campaign) Start() {
+func (c *Campaign) Started() {
 	c.Status = Started
 }
 
