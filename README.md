@@ -16,7 +16,7 @@ Este projeto é um serviço de envio de e-mails desenvolvido em Go. Ele utiliza 
   - [Gomail](https://github.com/go-gomail/gomail): Biblioteca para envio de e-mails.
   - [OAuth](https://golang.org/x/oauth2): Biblioteca para OAuth 2.0.
   - [Godotenv](https://github.com/joho/godotenv): Biblioteca para carregar variáveis de ambiente de um arquivo `.env`.
-  - [GO Jose](https://github.com/square/go-jose): Biblioteca para lidar com JSON Web Encryption (JWE) e JSON Web Signature (JWS).
+  - [GO Jose](https://github.com/go-jose/go-jose): Biblioteca para lidar com JSON Web Encryption (JWE) e JSON Web Signature (JWS).
 - **Banco de Dados**: PostgreSQL
 - **Autenticação**: Keycloak e OAuth
 - **Containerização**: Docker
