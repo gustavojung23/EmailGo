@@ -15,6 +15,3 @@
 # vendor/
 /tmp
 .env
-
-# Directory to docs
-/docs
