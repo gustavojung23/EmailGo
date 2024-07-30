@@ -1,7 +1,5 @@
 # Email Sender Project
 
-## Descrição
-
 Este projeto é um serviço de envio de e-mails desenvolvido em Go. Ele utiliza o framework Chi para roteamento, GORM para o mapeamento objeto-relacional, e Testify para testes unitários. Mocks são usados para facilitar o teste das funcionalidades do serviço. Para autenticação, o projeto usa Keycloak e OAuth, utilizando JWT para gerenciamento de tokens. O banco de dados utilizado é o PostgreSQL. O Docker é usado para containerização do ambiente de desenvolvimento. O envio de e-mails é realizado com o Gomail, e as variáveis de ambiente são gerenciadas com Godotenv.
 
 ## Tecnologias Utilizadas
