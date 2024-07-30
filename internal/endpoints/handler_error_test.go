@@ -12,7 +12,6 @@ import (
 )
 
 func Test_HandlerError_when_endpoint_returns_internal_error(t *testing.T) {
-	assert := assert.New(t)
 	endpoint := func(w http.ResponseWriter, r *http.Request) (interface{}, int, error) {
 		return nil, 0, internalerrors.ErrInternal
 	}
@@ -23,12 +22,11 @@ func Test_HandlerError_when_endpoint_returns_internal_error(t *testing.T) {
 
 	handlerFunc.ServeHTTP(res, req)
 
-	assert.Equal(http.StatusInternalServerError, res.Code)
-	assert.Contains(res.Body.String(), internalerrors.ErrInternal.Error())
+	assert.Equal(t, http.StatusInternalServerError, res.Code)
+	assert.Contains(t, res.Body.String(), internalerrors.ErrInternal.Error())
 }
 
 func Test_HandlerError_when_endpoint_returns_domain_error(t *testing.T) {
-	assert := assert.New(t)
 	endpoint := func(w http.ResponseWriter, r *http.Request) (interface{}, int, error) {
 		return nil, 0, errors.New("Domain error")
 	}
@@ -39,12 +37,11 @@ func Test_HandlerError_when_endpoint_returns_domain_error(t *testing.T) {
 
 	handlerFunc.ServeHTTP(res, req)
 
-	assert.Equal(http.StatusBadRequest, res.Code)
-	assert.Contains(res.Body.String(), "Domain error")
+	assert.Equal(t, http.StatusBadRequest, res.Code)
+	assert.Contains(t, res.Body.String(), "Domain error")
 }
 
 func Test_HandlerError_when_endpoint_returns_obj_and_status(t *testing.T) {
-	assert := assert.New(t)
 	type bodyForTest struct {
 		Id int
 	}
@@ -59,8 +56,8 @@ func Test_HandlerError_when_endpoint_returns_obj_and_status(t *testing.T) {
 
 	handlerFunc.ServeHTTP(res, req)
 
-	assert.Equal(http.StatusCreated, res.Code)
+	assert.Equal(t, http.StatusCreated, res.Code)
 	objReturned := bodyForTest{}
 	json.Unmarshal(res.Body.Bytes(), &objReturned)
-	assert.Equal(objExpected, objReturned)
+	assert.Equal(t, objExpected, objReturned)
 }
