@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	newCampaign = contract.NewCampaign{
+	newCampaign = contract.NewCampaignRequest{
 		Name:      "Test Y",
 		Content:   "Body Hi!",
 		Emails:    []string{"test1@test.com"},
@@ -51,7 +51,7 @@ func Test_Create_RequestIsValid_IdIsNotNil(t *testing.T) {
 
 func Test_Create_RequestIsNotValid_ErrInternal(t *testing.T) {
 	setupServiceTest()
-	_, err := service.Create(contract.NewCampaign{})
+	_, err := service.Create(contract.NewCampaignRequest{})
 
 	assert.False(t, errors.Is(internalerrors.ErrInternal, err))
 }

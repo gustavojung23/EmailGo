@@ -10,7 +10,7 @@ type CampaignServiceMock struct {
 	mock.Mock
 }
 
-func (r *CampaignServiceMock) Create(newCampaign contract.NewCampaign) (string, error) {
+func (r *CampaignServiceMock) Create(newCampaign contract.NewCampaignRequest) (string, error) {
 	args := r.Called(newCampaign)
 	return args.String(0), args.Error(1)
 }

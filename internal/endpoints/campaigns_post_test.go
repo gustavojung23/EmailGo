@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	body = contract.NewCampaign{
+	body = contract.NewCampaignRequest{
 		Name:    "teste",
 		Content: "Hi everyone",
 		Emails:  []string{"teste@teste.com"},
@@ -21,7 +21,7 @@ var (
 func Test_CampaignsPost_201(t *testing.T) {
 	setupTest()
 
-	service.On("Create", mock.MatchedBy(func(request contract.NewCampaign) bool {
+	service.On("Create", mock.MatchedBy(func(request contract.NewCampaignRequest) bool {
 		if request.Name == body.Name && request.Content == body.Content && request.CreatedBy == createdByExpected {
 			return true
 		} else {
