@@ -9,7 +9,7 @@ Authorization: Bearer {{access_token}}
 {
     "name": "Hi teste gustavo!",
     "content": "Hello!",
-    "emails": ["gustavojung.dev@gmail.com"]
+    "emails": ["teste@teste.com"]
 }
 
 ###
